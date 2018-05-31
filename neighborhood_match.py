@@ -1,5 +1,7 @@
 import json
 import urllib.request
+import re
+import shapely
 
 # Open URL and consume json
 source = urllib.request.urlopen('https://data.cityofchicago.org/api/views/igwz-8jzy/rows.json')
@@ -22,7 +24,12 @@ def get_poly(geo_list):
     # Retrieve coordinate tuples
     geo_string = geo_list[8]
     coord_string = geo_string[16:len(geo_string)-3]  # strips unnecessary junk at head and tail
-    poly_tuples = tuple([tuple(map(float, coords.lstrip().split(' '))) for coords in coord_string.split(',')])
+    poly_tuples = list([list(map(str, coords.lstrip().split(' '))) for coords in coord_string.split(',')])
+    non_decimal = re.compile(r'[^\d.]+')
+    for n, poly_tup in enumerate(poly_tuples):
+        for i, value in enumerate(poly_tup):
+            poly_tup[i] = float(non_decimal.sub('', value))
+        poly_tuples[n] = tuple(poly_tuples[n])
     return name, poly_tuples
 
 
@@ -31,4 +38,4 @@ for item in raw_dict['data']:
     neighborhood, poly = get_poly(item)
     poly_dict[neighborhood] = poly
 
-print(poly_dict['LOOP'])
+#  Create shapely polygon object for each neighborhood
