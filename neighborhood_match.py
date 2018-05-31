@@ -1,11 +1,13 @@
 import json
-import urllib.request
+import urllib3
 import re
-import shapely
+from shapely.geometry import Polygon
+import pandas as pd
 
+pool = urllib3.PoolManager()
 # Open URL and consume json
-source = urllib.request.urlopen('https://data.cityofchicago.org/api/views/igwz-8jzy/rows.json')
-raw_lines = source.read()
+source = pool.request('GET', 'https://data.cityofchicago.org/api/views/igwz-8jzy/rows.json')
+raw_lines = source.data
 raw_dict = json.loads(raw_lines)
 
 # JSON is structured with two main sections: 'meta' and 'data'
@@ -25,17 +27,25 @@ def get_poly(geo_list):
     geo_string = geo_list[8]
     coord_string = geo_string[16:len(geo_string)-3]  # strips unnecessary junk at head and tail
     poly_tuples = list([list(map(str, coords.lstrip().split(' '))) for coords in coord_string.split(',')])
+
+    #  define regex string to parse out non-numeric characters
     non_decimal = re.compile(r'[^\d.]+')
+
+    #  loop through coordinate pairs to remove problem characters, then transform to tuple
     for n, poly_tup in enumerate(poly_tuples):
         for i, value in enumerate(poly_tup):
             poly_tup[i] = float(non_decimal.sub('', value))
         poly_tuples[n] = tuple(poly_tuples[n])
     return name, poly_tuples
 
-
+#  create shapely polygons from json coordinate strings
 poly_dict = {}
 for item in raw_dict['data']:
     neighborhood, poly = get_poly(item)
-    poly_dict[neighborhood] = poly
+    shapely_poly = Polygon(poly)
+    poly_dict[neighborhood] = shapely_poly
 
-#  Create shapely polygon object for each neighborhood
+#  read in school data
+hs_data = pd.read_csv('CPS_HS_Progress_Report_1314.txt', sep='\t', header=0)
+print(hs_data.head())
+
