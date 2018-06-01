@@ -72,8 +72,9 @@ hs_data_lang = hs_data.join(census_lang, on='Neighborhood Name')
 
 census_econ = pd.read_csv('Census_Socio_Econ.csv', sep=',', header=0)
 census_econ.set_index(['NEIGHBORHOOD'], inplace=True)
-print census_econ.head(10)
+
 #  join to school data
 hs_data_lang_socio = hs_data_lang.join(census_econ, on='Neighborhood Name')
 
-print hs_data_lang_socio
+#  write dataframe to csv
+hs_data_lang_socio.to_csv('hs_data_all_fields.csv')
