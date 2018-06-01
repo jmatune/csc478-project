@@ -1,11 +1,15 @@
+#  Code to combine school level data with neighborhood level demographic data
+#  Used shapely to assign neighborhoods to schools based on lat-long
+#  Joined demographic neighborhood to school information based on neighborhood name
+
 import json
 import urllib3
 import re
 from shapely.geometry import Polygon, Point
 import pandas as pd
 
-pool = urllib3.PoolManager()
 # Open URL and consume json
+pool = urllib3.PoolManager()
 source = pool.request('GET', 'https://data.cityofchicago.org/api/views/igwz-8jzy/rows.json')
 raw_lines = source.data
 raw_dict = json.loads(raw_lines)
@@ -38,6 +42,8 @@ def get_poly(geo_list):
         poly_tuples[n] = tuple(poly_tuples[n])
     return name, poly_tuples
 
+
+# Return neighborhood name by doing point-in-polygon check with lat/long
 def get_name(lat, long):
     point_tuple = Point(float(lat)*-1, float(long))
     n_name = 'Not Found'
@@ -61,7 +67,8 @@ hs_data = pd.read_csv('school_lib.csv', sep=',', header=0)
 hs_data['Neighborhood Name'] = 'None'
 
 for row in range(hs_data.shape[0]):
-    hs_data['Neighborhood Name'].iloc[row] = get_name(hs_data['School_Longitude.1'].iloc[row], hs_data['School_Latitude.1'].iloc[row])
+    hs_data['Neighborhood Name'].iloc[row] = get_name(hs_data['School_Longitude.1'].iloc[row],
+                                                      hs_data['School_Latitude.1'].iloc[row])
 
 #  Read in census data for non-english language
 census_lang = pd.read_csv('Census_Neighborhood_Language.csv', sep=',', header=0)
