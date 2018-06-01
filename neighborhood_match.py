@@ -57,8 +57,10 @@ for item in raw_dict['data']:
     poly_dict[neighborhood] = shapely_poly
 
 #  read in school data
-hs_data = pd.read_csv('CPS Profiles.txt', sep='\t', header=0)
+hs_data = pd.read_csv('school_lib.csv', sep=',', header=0)
 hs_data['Neighborhood Name'] = 'None'
 
 for row in range(hs_data.shape[0]):
-    hs_data['Neighborhood Name'].iloc[row] = get_name(hs_data['Longitude'].iloc[row], hs_data['Latitude'].iloc[row])
+    hs_data['Neighborhood Name'].iloc[row] = get_name(hs_data['School_Longitude.1'].iloc[row], hs_data['School_Latitude.1'].iloc[row])
+
+print hs_data['Neighborhood Name']
