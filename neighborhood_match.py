@@ -63,10 +63,17 @@ hs_data['Neighborhood Name'] = 'None'
 for row in range(hs_data.shape[0]):
     hs_data['Neighborhood Name'].iloc[row] = get_name(hs_data['School_Longitude.1'].iloc[row], hs_data['School_Latitude.1'].iloc[row])
 
+#  Read in census data for non-english language
 census_lang = pd.read_csv('Census_Neighborhood_Language.csv', sep=',', header=0)
 census_lang.set_index(['NEIGHBORHOOD'], inplace=True)
-#print census_lang
 
+#  join to school data
 hs_data_lang = hs_data.join(census_lang, on='Neighborhood Name')
-#print hs_data_lang.head(10)
-print hs_data_lang['PRED_NON_ENG_LANG'].value_counts()
+
+census_econ = pd.read_csv('Census_Socio_Econ.csv', sep=',', header=0)
+census_econ.set_index(['NEIGHBORHOOD'], inplace=True)
+print census_econ.head(10)
+#  join to school data
+hs_data_lang_socio = hs_data_lang.join(census_econ, on='Neighborhood Name')
+
+print hs_data_lang_socio
