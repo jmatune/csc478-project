@@ -1,7 +1,7 @@
 import json
 import urllib3
 import re
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 import pandas as pd
 
 pool = urllib3.PoolManager()
@@ -38,6 +38,17 @@ def get_poly(geo_list):
         poly_tuples[n] = tuple(poly_tuples[n])
     return name, poly_tuples
 
+def get_name(lat, long):
+    point_tuple = Point(float(lat)*-1, float(long))
+    n_name = 'Not Found'
+    for key_name in poly_dict.keys():
+        n_poly = poly_dict[key_name]
+
+        if point_tuple.within(n_poly):
+            n_name = key_name
+    return n_name
+
+
 #  create shapely polygons from json coordinate strings
 poly_dict = {}
 for item in raw_dict['data']:
@@ -46,6 +57,8 @@ for item in raw_dict['data']:
     poly_dict[neighborhood] = shapely_poly
 
 #  read in school data
-hs_data = pd.read_csv('CPS_HS_Progress_Report_1314.txt', sep='\t', header=0)
-print(hs_data.head())
+hs_data = pd.read_csv('CPS Profiles.txt', sep='\t', header=0)
+hs_data['Neighborhood Name'] = 'None'
 
+for row in range(hs_data.shape[0]):
+    hs_data['Neighborhood Name'].iloc[row] = get_name(hs_data['Longitude'].iloc[row], hs_data['Latitude'].iloc[row])
